@@ -2,16 +2,20 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
-
-
+var cookieParser = require('cookie-parser');
 var db = require('./app/config');
 var Users = require('./app/collections/users');
 var User = require('./app/models/user');
 var Links = require('./app/collections/links');
 var Link = require('./app/models/link');
 var Click = require('./app/models/click');
-
+/////////
+var passport = require('passport');
+var authenticate = require('express-authentication');
+var session = require('express-session');
+///
 var app = express();
+
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -22,11 +26,48 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+app.use(cookieParser());
 
-app.get('/', 
-function(req, res) {
+app.use(session({
+  secret: 'boo',
+  resave: false,
+  saveUninitiated: false
+}));
+ 
+var restrict = function(req, res, next) {
+  if (req.session.username || req.url === '/login') {
+    next();
+  } else {
+    req.session.error = 'Access denied!';
+    res.redirect('/login');
+  }
+};
+app.use(restrict);
+
+// var token;
+
+app.get('/login', function(req, res) {
+  res.render('login');
+});
+ 
+// app.post('/login', function(req, res) {
+  
+//   var username = req.body.username;
+//   var password = req.body.password;
+ 
+//   if (username === 'demo' && password === 'test') {
+//     req.session.regenerate(function() { 
+//       req.session.user = username;
+//       res.redirect('/');
+//     });
+//   } else {
+//     res.redirect('/login');
+//   }    
+// });
+app.get('/', function(req, res) {
   res.render('index');
 });
+
 
 app.get('/create', 
 function(req, res) {
@@ -75,25 +116,8 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
-// get express-authentication
-var authenticate = require('express-authentication');
-var session = require('express-session');
-app.use(session({
-  name: 'server-session',
-  secret: 'iDontLikePandas',
-  saveUninitialized: true,
-  resave: true,
-  cookies: {path: '/login'}
-}));
 
-var requiredAuthentication = function(req, res, next) {
-  if (req.session.user) {
-    next();
-  } else {
-    req.session.error = 'Access denied!';
-    res.redirect('/login');
-  }
-};
+
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
