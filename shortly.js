@@ -75,6 +75,8 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+// get express-authentication
+var authenticate = require('express-authentication');
 var session = require('express-session');
 app.use(session({
   name: 'server-session',
@@ -97,7 +99,6 @@ var requiredAuthentication = function(req, res, next) {
 // assume the route is a short code and try and handle it here.
 // If the short-code doesn't exist, send the user to '/'
 /************************************************************/
-// get express-authentication
 
 app.get('/*', function(req, res) {
   new Link({ code: req.params[0] }).fetch().then(function(link) {
