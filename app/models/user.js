@@ -6,7 +6,7 @@ var Promise = require('bluebird');
 
 var User = db.Model.extend({
   tableName: 'users',
-  hasColumns: true
+  loggedIn: false   // this is probably a terrible idea for security
 });
 
 module.exports = User;

@@ -80,18 +80,29 @@ app.use(session({
   name: 'server-session',
   secret: 'iDontLikePandas',
   saveUninitialized: true,
-  resave: true
+  resave: true,
+  cookies: {path: '/login'}
 }));
 
+var requiredAuthentication = function(req, res, next) {
+  if (req.session.user) {
+    next();
+  } else {
+    req.session.error = 'Access denied!';
+    res.redirect('/login');
+  }
+};
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
 // If the short-code doesn't exist, send the user to '/'
 /************************************************************/
+// get express-authentication
 
 app.get('/*', function(req, res) {
   new Link({ code: req.params[0] }).fetch().then(function(link) {
     if (!link) {
+      // if the link doesn't exist redirect to /
       res.redirect('/');
     } else {
       var click = new Click({
