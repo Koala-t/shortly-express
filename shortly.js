@@ -31,41 +31,26 @@ app.use(cookieParser());
 app.use(session({
   secret: 'boo',
   resave: false,
-  saveUninitiated: true
+  saveUninitialized: true
 }));
- 
-app.get('/', function(req, res) {
-  if (req.session.loggedIn) {
-    res.render('index');
-  } else {
-    res.redirect('/login');
-  }
-});
 
-app.get('/login', function(req, res) {
-  res.render('login');
-});
- 
 
-app.get('/create', 
-function(req, res) {
-  if (req.session.loggedIn) {
-    res.render('index');
-  } else {
-    res.redirect('/login');
-  }
+app.get('/', util.checkUser, function(req, res) {
+  res.render('index');
 });
 
 
-app.get('/links', 
-function(req, res) {
+app.get('/create', util.checkUser, function(req, res) {
+  res.render('index');
+});
+
+app.get('/links', util.checkUser, function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
 });
 
-app.post('/links', 
-function(req, res) {
+app.post('/links', util.checkUser, function(req, res) {
   var uri = req.body.url;
 
   if (!util.isValidUrl(uri)) {
@@ -100,7 +85,13 @@ function(req, res) {
 // Write your authentication routes here
 /************************************************************/
 
-
+app.get('/login', function(req, res) {
+  res.render('login');
+});
+ 
+app.get('/signup', function(req, res) {
+  res.render('signup');
+});
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
