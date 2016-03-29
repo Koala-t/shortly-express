@@ -75,8 +75,13 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
-
-
+var session = require('express-session');
+app.use(session({
+  name: 'server-session',
+  secret: 'iDontLikePandas',
+  saveUninitialized: true,
+  resave: true
+}));
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
