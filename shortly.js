@@ -31,48 +31,31 @@ app.use(cookieParser());
 app.use(session({
   secret: 'boo',
   resave: false,
-  saveUninitiated: false
+  saveUninitiated: true
 }));
  
-var restrict = function(req, res, next) {
-  if (req.session.username || req.url === '/login') {
-    next();
+app.get('/', function(req, res) {
+  if (req.session.loggedIn) {
+    res.render('index');
   } else {
-    req.session.error = 'Access denied!';
     res.redirect('/login');
   }
-};
-app.use(restrict);
-
-// var token;
+});
 
 app.get('/login', function(req, res) {
   res.render('login');
 });
  
-// app.post('/login', function(req, res) {
-  
-//   var username = req.body.username;
-//   var password = req.body.password;
- 
-//   if (username === 'demo' && password === 'test') {
-//     req.session.regenerate(function() { 
-//       req.session.user = username;
-//       res.redirect('/');
-//     });
-//   } else {
-//     res.redirect('/login');
-//   }    
-// });
-app.get('/', function(req, res) {
-  res.render('index');
-});
-
 
 app.get('/create', 
 function(req, res) {
-  res.render('index');
+  if (req.session.loggedIn) {
+    res.render('index');
+  } else {
+    res.redirect('/login');
+  }
 });
+
 
 app.get('/links', 
 function(req, res) {
