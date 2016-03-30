@@ -15,7 +15,7 @@ var authenticate = require('express-authentication');
 var session = require('express-session');
 ///
 var app = express();
-
+var bcrypt = require('bcrypt-nodejs');
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -92,6 +92,75 @@ app.get('/login', function(req, res) {
 app.get('/signup', function(req, res) {
   res.render('signup');
 });
+
+app.post('/login', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+
+  new User({ username: username })
+    .fetch()
+    .then(function(user) {
+      if (!user) {
+        res.redirect('/login');
+      } else {
+        bcrypt.compare(password, user.get('password'), function(err, match) {
+          if (match) {
+            util.createSession(req, res, user);
+          } else {
+            res.redirect('/login');
+          }
+        });
+      }
+    });
+});
+
+// app.post('/signup', function(req, res) {
+//   var user = req.body.username;
+//   var password = req.body.password;
+
+//   new User({username: username})
+//     .fetch().then(function(user) {
+//       console.log('---------user-------', user);
+//       if (!user) {
+//         bcrypt.hash(password, 'null', null, function(err, hash) {
+//           console.log('-------------hash-----------', hash);
+//           users.create({
+//             username: username,
+//             password: hash
+//           }).then(function(user) {
+//             util.createSession(req, res, user);
+//           });
+//         });
+//       } else {
+//         console.log('Account already exists');
+//         res.redirect('/signup');
+//       }
+//     });
+// });
+
+app.post('/signup', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+
+  new User({ username: username })
+    .fetch()
+    .then(function(user) {
+      if (!user) {
+        var newUser = new User({
+          username: username,
+          password: password
+        });
+        newUser.save()
+          .then(function(newUser) {
+            util.createSession(req, res, newUser);
+          });
+      } else {
+        console.log('Account already exists');
+        res.redirect('/signup');
+      }
+    });
+});
+
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
